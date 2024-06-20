@@ -47,6 +47,7 @@
             this.label9 = new System.Windows.Forms.Label();
             this.txtMaliyet = new System.Windows.Forms.TextBox();
             this.btnExcel = new System.Windows.Forms.Button();
+            this.sahinBox = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // txtAdet
@@ -71,6 +72,7 @@
             // 
             this.txtBirimKargo.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.txtBirimKargo.Location = new System.Drawing.Point(781, 68);
+            this.txtBirimKargo.Multiline = true;
             this.txtBirimKargo.Name = "txtBirimKargo";
             this.txtBirimKargo.Size = new System.Drawing.Size(134, 20);
             this.txtBirimKargo.TabIndex = 4;
@@ -233,10 +235,20 @@
             this.btnExcel.UseVisualStyleBackColor = false;
             this.btnExcel.Click += new System.EventHandler(this.btnExcel_Click);
             // 
+            // sahinBox
+            // 
+            this.sahinBox.Location = new System.Drawing.Point(159, 392);
+            this.sahinBox.Multiline = true;
+            this.sahinBox.Name = "sahinBox";
+            this.sahinBox.Size = new System.Drawing.Size(735, 110);
+            this.sahinBox.TabIndex = 23;
+            this.sahinBox.TextChanged += new System.EventHandler(this.sahinBox_TextChanged);
+            // 
             // Calculate
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.sahinBox);
             this.Controls.Add(this.btnExcel);
             this.Controls.Add(this.cbStockCode);
             this.Controls.Add(this.lblKar);
@@ -283,5 +295,6 @@
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.TextBox txtMaliyet;
         private System.Windows.Forms.Button btnExcel;
+        private System.Windows.Forms.TextBox sahinBox;
     }
 }

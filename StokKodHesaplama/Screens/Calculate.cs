@@ -1,15 +1,12 @@
-﻿using OfficeOpenXml;
+﻿
+using Org.BouncyCastle.Asn1.Ocsp;
 using StokKodHesaplama.Entities;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
-using System.IO;
+
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
+
 using System.Windows.Forms;
 using Excel = Microsoft.Office.Interop.Excel;
 
@@ -295,6 +292,54 @@ namespace StokKodHesaplama.Screens
 
             // Excel uygulamasını göster
             excelApp.Visible = true;
+
+        }
+
+        private void sahinBox_TextChanged(object sender, EventArgs e)
+        {
+            DataTable dt = new DataTable();
+            dt.Columns.AddRange(new DataColumn[10] {
+            new DataColumn("StokKodu",typeof(string)),
+            new DataColumn("Adet",typeof(decimal)),
+            new DataColumn("Desi",typeof(decimal)),
+            new DataColumn("Fiyat",typeof(decimal)),
+            new DataColumn("Komisyon",typeof(decimal)),
+            new DataColumn("BirimKargoUcreti",typeof(decimal)),
+            new DataColumn("ToplamKargoUcreti",typeof(decimal)),
+            new DataColumn("Maliyet",typeof(decimal)),
+            new DataColumn("Kar",typeof(decimal)),
+            new DataColumn("Tarih",typeof(DateTime))
+            });
+
+            string excelData = sahinBox.Text.Trim();
+            string[] rows = excelData.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+
+
+            foreach (string row in rows)
+            {
+                string[] cells = row.Split('\t'); // Örneğin satırlar tab ('\t') ile ayrılmış olsun
+                if (cells.Length >= 9) // En az üç sütun varsa
+                {
+                    DataRow dr = dt.NewRow();
+                    dr["StokKodu"] = cells[0];
+                    dr["Adet"] = cells[1];
+                    dr["Desi"] = cells[2];
+                    dr["Fiyat"] = cells[3];
+                    dr["Komisyon"] = cells[4];
+                    dr["BirimKargoUcreti"] = cells[5];
+                    dr["ToplamKargoUcreti"] = cells[6];
+                    dr["Maliyet"] = cells[7];
+                    dr["Kar"] = cells[8];
+                    dr["Tarih"] = DateTime.Now;
+
+                    dt.Rows.Add(dr);
+                }
+            }
+           
+           
+
+           
+
 
         }
     }

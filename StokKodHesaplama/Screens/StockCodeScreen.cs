@@ -1,4 +1,5 @@
-﻿using StokKodHesaplama.Entities;
+﻿using StokKodHesaplama;
+using StokKodHesaplama.Entities;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -9,7 +10,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-//Created By Fatih Mehmet Coşkun 41
 
 namespace StokKodHesaplama
 {
@@ -130,5 +130,43 @@ namespace StokKodHesaplama
                 txtUrunMaliyet.Text = urunMaliyeti;
             }
         }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            if (dataGridView1.CurrentRow != null)
+            {
+                int selectedRowIndex = dataGridView1.CurrentRow.Index;
+                if (selectedRowIndex >= 0)
+                {
+                    string stokKodu = dataGridView1.Rows[selectedRowIndex].Cells["ID"].Value.ToString(); // Stok kodu hücresini alın
+
+                    // DataGridView'den satırı kaldır
+          
+
+                    // Veritabanından sil
+                    using (DataContext context = new DataContext())
+                    {
+                        StockCode stockCode = context.StockCode.FirstOrDefault(x => x.ID == ID); // Stok kodunu kullanarak ilgili kaydı bulun
+                        if (stockCode != null)
+                        {
+                            context.StockCode.Remove(stockCode); // Kaydı veritabanından kaldırın
+                            context.SaveChanges();
+                        }
+                    }
+
+                    MessageBox.Show("Seçili satır başarıyla silindi.");
+                    GetData();
+                }
+            }
+            else
+            {
+                MessageBox.Show("Lütfen silinecek satırı seçin.");
+            }
+        }
     }
 }
+
+
+
+   
+    

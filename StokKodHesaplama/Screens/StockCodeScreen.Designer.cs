@@ -43,6 +43,7 @@
             this.txtUrunMaliyet = new System.Windows.Forms.TextBox();
             this.txtBirimKargo = new System.Windows.Forms.TextBox();
             this.txtKomisyon = new System.Windows.Forms.TextBox();
+            this.button3 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -181,10 +182,22 @@
             this.txtKomisyon.Size = new System.Drawing.Size(117, 20);
             this.txtKomisyon.TabIndex = 14;
             // 
+            // button3
+            // 
+            this.button3.BackColor = System.Drawing.Color.Firebrick;
+            this.button3.Location = new System.Drawing.Point(769, 122);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(150, 41);
+            this.button3.TabIndex = 15;
+            this.button3.Text = "Sil";
+            this.button3.UseVisualStyleBackColor = false;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
+            // 
             // StockCodeScreen
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.button3);
             this.Controls.Add(this.txtKomisyon);
             this.Controls.Add(this.txtBirimKargo);
             this.Controls.Add(this.txtUrunMaliyet);
@@ -225,5 +238,6 @@
         private System.Windows.Forms.TextBox txtUrunMaliyet;
         private System.Windows.Forms.TextBox txtBirimKargo;
         private System.Windows.Forms.TextBox txtKomisyon;
+        private System.Windows.Forms.Button button3;
     }
 }
