@@ -1,5 +1,7 @@
 ﻿
+using Google.Protobuf.Compiler;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Office.Interop.Excel;
 using Org.BouncyCastle.Asn1.Ocsp;
 using StokKodHesaplama.Entities;
 using System;
@@ -9,6 +11,7 @@ using System.Data;
 using System.Linq;
 
 using System.Windows.Forms;
+using DataTable = System.Data.DataTable;
 using Excel = Microsoft.Office.Interop.Excel;
 
 //Created By Fatih Mehmet Coşkun 41
@@ -17,9 +20,13 @@ namespace StokKodHesaplama.Screens
 {
     public partial class Calculate : UserControl
     {
+        private DbClass db;
         public Calculate()
         {
             InitializeComponent();
+
+            db = new DbClass();
+
 
 //            GetData();
 
@@ -203,12 +210,11 @@ namespace StokKodHesaplama.Screens
 
             decimal kar = 0;
 
-            using (var dbContext = new DataContext())
-            {
+          
                 foreach (string row in rows)
                 {
-                    string[] cells = row.Split('\t'); // Örneğin satırlar tab ('\t') ile ayrılmış olsun
-                    if (cells.Length >= 2) // En az üç sütun varsa
+                    string[] cells = row.Split('\t');
+                    if (cells.Length >= 2)
                     {
                         decimal number;
                         if (Decimal.TryParse(cells[1], out number))
@@ -217,30 +223,11 @@ namespace StokKodHesaplama.Screens
                             dr["StokKodu"] = cells[0].ToString();
                             dr["Adet"] = number;
 
-                            var desi = dbContext.StockCode.AsEnumerable()
-                                        .Where(sc => sc.StokKodu == cells[0].ToString())
-                                        .Select(sc => sc.Desi)
-                                        .FirstOrDefault();
-
-                            var fiyat = dbContext.StockCode.AsEnumerable()
-                                              .Where(sc => sc.StokKodu == cells[0].ToString())
-                                              .Select(sc => sc.Fiyat)
-                                              .FirstOrDefault();
-
-                            var komisyon = dbContext.StockCode.AsEnumerable()
-                                              .Where(sc => sc.StokKodu == cells[0].ToString())
-                                              .Select(sc => sc.KomisyonTutari)
-                                              .FirstOrDefault();
-                            var maliyet = dbContext.StockCode.AsEnumerable()
-                                             .Where(sc => sc.StokKodu == cells[0].ToString())
-                                             .Select(sc => sc.UrunMaliyeti)
-                                             .FirstOrDefault();
-
-
-                            var birimKargoUcreti = dbContext.StockCode.AsEnumerable()
-                                                .Where(sc => sc.StokKodu == cells[0].ToString())
-                                                .Select(sc => sc.BirimKargoUcreti)
-                                                .FirstOrDefault();
+                            var desi = db.GetValueFromDatabase("StockCodes","Desi", cells[0].ToString());
+                            var fiyat = db.GetValueFromDatabase("StockCodes", "Fiyat", cells[0].ToString());
+                            var komisyon = db.GetValueFromDatabase("StockCodes", "KomisyonTutari", cells[0].ToString());
+                            var maliyet = db.GetValueFromDatabase("StockCodes", "UrunMaliyeti", cells[0].ToString());
+                            var birimKargoUcreti = db.GetValueFromDatabase("StockCodes", "BirimKargoUcreti", cells[0].ToString());
 
                             if (desi == null || birimKargoUcreti == null || fiyat == null || komisyon == null || maliyet == null)
                             {
@@ -254,34 +241,40 @@ namespace StokKodHesaplama.Screens
                             else
                             {
                                 decimal adet1 = number;
-                                decimal fiyat1 = ConvertToDecimal(fiyat.Value.ToString());
-                                decimal birimKargo1 = ConvertToDecimal(birimKargoUcreti.Value.ToString());
-                                decimal komisyon1 = ConvertToDecimal(komisyon.Value.ToString());
-                                decimal desi1 = ConvertToDecimal(desi.Value.ToString());
-                                decimal maliyet1 = ConvertToDecimal(maliyet.Value.ToString());
+                                decimal fiyat1 = ConvertToDecimal(fiyat.ToString());
+                                decimal birimKargo1 = ConvertToDecimal(birimKargoUcreti.ToString());
+                                decimal komisyon1 = ConvertToDecimal(komisyon.ToString());
+                                decimal desi1 = ConvertToDecimal(desi.ToString());
+                                decimal maliyet1 = ConvertToDecimal(maliyet.ToString());
                                 decimal toplamKargo1 = ConvertToDecimal((number * ConvertToDecimal(birimKargo1.ToString())).ToString());
-                                kar = (decimal)(number * (fiyat - (fiyat * komisyon / 100) - toplamKargo1 - maliyet));
-
-                                using (DataContext context = new DataContext())
-                                {
+                                     kar = adet1 * (fiyat1 - (fiyat1 * komisyon1 / 100) - toplamKargo1 - maliyet1);
 
 
-                                    context.Stocks.Add(new Stock
-                                    {
-                                        StokKodu = cells[0],
-                                        Adet = (int?)number,
-                                        Fiyat = fiyat1,
-                                        Desi = desi1,
-                                        BirimKargoUcreti = birimKargo1,
-                                        Komisyon = komisyon1,
-                                        Maliyet = maliyet1,
-                                        ToplamKargoUcreti = toplamKargo1,
-                                        Kar = kar,
-                                        Tarih = DateTime.Now
-                                    });
-                                    context.SaveChanges();
-                                    //  MessageBox.Show("Başarıyla Kayıt Yapıldı");
-                                }
+                             string insertQuery = $@"INSERT INTO Stocks (StokKodu, Adet, Desi, Fiyat, Komisyon,BirimKargoUcreti,ToplamKargoUcreti,Maliyet,Kar,Tarih)
+VALUES ('{cells[0]}', '{(int?)number}', '{desi1}', '{fiyat1}', '{komisyon1}', '{birimKargo1}','{toplamKargo1}','{maliyet1}','{kar}',DateTime('now', '+3 hours'))";
+                            db.ExecuteNonQuery(insertQuery);
+
+
+                            //using (DataContext context = new DataContext())
+                            //    {
+
+
+                            //        context.Stocks.Add(new Stock
+                            //        {
+                            //            StokKodu = cells[0],
+                            //            Adet = (int?)number,
+                            //            Fiyat = fiyat1,
+                            //            Desi = desi1,
+                            //            BirimKargoUcreti = birimKargo1,
+                            //            Komisyon = komisyon1,
+                            //            Maliyet = maliyet1,
+                            //            ToplamKargoUcreti = toplamKargo1,
+                            //            Kar = kar,
+                            //            Tarih = DateTime.Now
+                            //        });
+                            //        context.SaveChanges();
+                            //        //  MessageBox.Show("Başarıyla Kayıt Yapıldı");
+                            //    }
                                 kar += kar;
 
                             }
@@ -295,78 +288,27 @@ namespace StokKodHesaplama.Screens
                             MessageBox.Show("Adet Sayısı Sayısal Olmalıdır");
                             break;
                         }
-                       
+
 
                     }
-                  
+
                 }
                 MessageBox.Show("Başarıyla Kayıt Yapıldı");
 
                 lblKar.Text = "Kar: " + kar.ToString();
                 lblKar.Visible = true;
-            }
-
-            //if (string.IsNullOrEmpty(cbStockCode.Text) || string.IsNullOrEmpty(txtAdet.Text) || string.IsNullOrEmpty(txtDesi.Text) || string.IsNullOrEmpty(txtFiyat.Text) || string.IsNullOrEmpty(txtBirimKargo.Text) ||
-            //    string.IsNullOrEmpty(txtKomisyon.Text) || string.IsNullOrEmpty(txtMaliyet.Text) || string.IsNullOrEmpty(txtToplamKargo.Text)
-            //    )
-            //{
-            //    MessageBox.Show("Lütfen Tüm Alanları Doldurunuz");
-            //    return;
-            //}
-            //else
-            //{
-            //    decimal adet = ConvertToDecimal(txtAdet.Text);
-            //    decimal fiyat = ConvertToDecimal(txtFiyat.Text);
-            //    decimal birimKargo = ConvertToDecimal(txtBirimKargo.Text);
-            //    decimal komisyon = ConvertToDecimal(txtKomisyon.Text);
-            //    decimal desi = ConvertToDecimal(txtDesi.Text);
-            //    decimal maliyet = ConvertToDecimal(txtMaliyet.Text);
-            //    decimal toplamKargo = ConvertToDecimal(txtToplamKargo.Text);
-            //    decimal kar = adet * (fiyat - (fiyat * komisyon / 100) - toplamKargo - maliyet);
-            //    lblKar.Text = "Kar: " + kar.ToString();
-            //    lblKar.Visible = true;
-            //    using (DataContext context = new DataContext())
-            //    {
+            
 
 
-            //        context.Stocks.Add(new Stock
-            //        {
-            //            StokKodu = cbStockCode.Text,
-            //            Adet = (int?)adet,
-            //            Fiyat = fiyat,
-            //            Desi = desi,
-            //            BirimKargoUcreti = birimKargo,
-            //            Komisyon = komisyon,
-            //            Maliyet = maliyet,
-            //            ToplamKargoUcreti = toplamKargo,
-            //            Kar = kar,
-            //            Tarih = DateTime.Now
-            //        });
-            //        context.SaveChanges();
-            //        //  MessageBox.Show("Başarıyla Kayıt Yapıldı");
-            //    }
-
-
-
-            //}
         }
 
         private void btnExcel_Click(object sender, EventArgs e)
         {
-            ExportToExcel(GetStocksFromDatabase());
+            ExportToExcel();
         }
-        private List<Stock> GetStocksFromDatabase()
-        {
-            // Veritabanından verileri al ve geri dön
-            // Örnek bir veritabanı sorgusu:
-            using (var context = new DataContext())
-            {
-                return context.Stocks.OrderByDescending(s => s.ID).ToList();
+     
 
-            }
-        }
-
-        public void ExportToExcel(List<Stock> stocks)
+        public void ExportToExcel()
         {
 
             Excel.Application excelApp = new Excel.Application();
@@ -385,29 +327,45 @@ namespace StokKodHesaplama.Screens
             worksheet.Cells[1, 9] = "Kar";
             worksheet.Cells[1, 10] = "Tarih";
 
+
             // Diğer sütun başlıklarını ekleyin...
 
             // Verileri satırlara yaz
             int row = 2;
-            foreach (var stock in stocks)
+
+            string selectQuery = "select * from Stocks order by Tarih desc";
+            DataTable dt = db.ExecuteQuery(selectQuery);
+
+            foreach (DataRow stock in dt.Rows)
             {
-                worksheet.Cells[row, 1] = stock.StokKodu;
-                worksheet.Cells[row, 2] = stock.Adet;
-                worksheet.Cells[row, 3] = stock.Desi;
-                worksheet.Cells[row, 4] = stock.Fiyat;
-                worksheet.Cells[row, 5] = stock.Komisyon;
-                worksheet.Cells[row, 6] = stock.BirimKargoUcreti;
-                worksheet.Cells[row, 7] = stock.ToplamKargoUcreti;
-                worksheet.Cells[row, 8] = stock.Maliyet;
-                worksheet.Cells[row, 9] = stock.Kar;
-                worksheet.Cells[row, 10] = stock.Tarih;
+                worksheet.Cells[row, 1] = stock["StokKodu"];
+                worksheet.Cells[row, 2] = stock["Adet"];
+                worksheet.Cells[row, 3] = stock["Desi"];
+                worksheet.Cells[row, 4] = stock["Fiyat"];
+                worksheet.Cells[row, 5] = stock["Komisyon"];
+                worksheet.Cells[row, 6] = stock["BirimKargoUcreti"];
+                worksheet.Cells[row, 7] = stock["ToplamKargoUcreti"];
+                worksheet.Cells[row, 8] = stock["Maliyet"];
+                worksheet.Cells[row, 9] = stock["Kar"];
+                worksheet.Cells[row, 10] = stock["Tarih"];
+
                 // Diğer sütunları ekleyin...
 
                 row++;
             }
 
             // Excel uygulamasını göster
-            excelApp.Visible = true;
+
+            if (dt.Rows.Count > 0)
+            {
+                excelApp.Visible = true;
+            }
+            else
+            {
+                excelApp.Visible = false;
+                MessageBox.Show("Aktarılacak veri bulunamadı.");
+            }
+       
 
         }
 

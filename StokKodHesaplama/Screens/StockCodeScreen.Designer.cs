@@ -185,6 +185,7 @@
             // button3
             // 
             this.button3.BackColor = System.Drawing.Color.Firebrick;
+            this.button3.ForeColor = System.Drawing.SystemColors.ButtonFace;
             this.button3.Location = new System.Drawing.Point(769, 122);
             this.button3.Name = "button3";
             this.button3.Size = new System.Drawing.Size(150, 41);
